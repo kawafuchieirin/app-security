@@ -1,0 +1,103 @@
+name: Setup AWS Infrastructure
+
+'on':
+  workflow_dispatch:  # 手動実行のみ
+    inputs:
+      aws_region:
+        description: 'AWS Region'
+        required: true
+        default: 'ap-northeast-1'
+      app_name:
+        description: 'Application Name'
+        required: true
+        default: 'flask-todo-app'
+      environment:
+        description: 'Environment (development/staging/production)'
+        required: true
+        default: 'production'
+      github_repository:
+        description: 'GitHub Repository (owner/repo)'
+        required: true
+
+permissions:
+  id-token: write   # OIDC用
+  contents: read
+
+jobs:
+  setup:
+    name: Setup Infrastructure with Terraform
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS credentials (Access Key)
+        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ github.event.inputs.aws_region }}
+
+      - name: Configure AWS credentials (OIDC Role)
+        if: ${{ secrets.AWS_ACCESS_KEY_ID == '' && secrets.AWS_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ github.event.inputs.aws_region }}
+
+      - name: Create terraform.tfvars
+        working-directory: terraform
+        run: |
+          cat > terraform.tfvars <<EOF
+          aws_region = "${{ github.event.inputs.aws_region }}"
+          app_name = "${{ github.event.inputs.app_name }}"
+          environment = "${{ github.event.inputs.environment }}"
+          github_repository = "${{ github.event.inputs.github_repository }}"
+          EOF
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve tfplan
+
+      - name: Get GitHub Actions Role ARN
+        id: get-role-arn
+        working-directory: terraform
+        run: |
+          ROLE_ARN=$(terraform output -raw github_actions_role_arn)
+          echo "role_arn=$ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "### Infrastructure Setup Complete! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. Add the following secret to your repository:" >> $GITHUB_STEP_SUMMARY
+          echo "   - Go to Settings → Secrets and variables → Actions" >> $GITHUB_STEP_SUMMARY
+          echo "   - Click 'New repository secret'" >> $GITHUB_STEP_SUMMARY
+          echo "   - Name: \`AWS_ROLE_ARN\`" >> $GITHUB_STEP_SUMMARY
+          echo "   - Value: \`$ROLE_ARN\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "2. Push to main branch to trigger automatic deployment" >> $GITHUB_STEP_SUMMARY
+
+      - name: Display outputs
+        working-directory: terraform
+        run: |
+          echo "=== Terraform Outputs ==="
+          terraform output
+          echo ""
+          echo "=== IMPORTANT: Add this to GitHub Secrets ==="
+          echo "Secret Name: AWS_ROLE_ARN"
+          echo "Secret Value: $(terraform output -raw github_actions_role_arn)"
