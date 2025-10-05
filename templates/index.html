@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}ホーム - Flask タスク管理{% endblock %}
+
+{% block content %}
+<div class="content-section">
+    <h2>タスク一覧</h2>
+
+    <form method="POST" action="{{ url_for('add_task') }}" class="task-form">
+        <div class="form-group">
+            <label for="title">タスク名:</label>
+            <input type="text" id="title" name="title" required placeholder="タスクのタイトルを入力">
+        </div>
+
+        <div class="form-group">
+            <label for="description">説明:</label>
+            <textarea id="description" name="description" rows="3" placeholder="タスクの詳細（任意）"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">タスクを追加</button>
+    </form>
+</div>
+
+<div class="content-section">
+    <h3>タスクリスト ({{ tasks|length }}件)</h3>
+
+    {% if tasks %}
+        <div class="task-list">
+            {% for task in tasks %}
+                <div class="task-item {% if task.completed %}completed{% endif %}">
+                    <div class="task-info">
+                        <h4>{{ task.title }}</h4>
+                        {% if task.description %}
+                            <p>{{ task.description }}</p>
+                        {% endif %}
+                        <small class="task-date">作成日時: {{ task.created_at }}</small>
+                    </div>
+                    <div class="task-actions">
+                        <a href="{{ url_for('complete_task', task_id=task.id) }}"
+                           class="btn btn-small {% if task.completed %}btn-warning{% else %}btn-success{% endif %}">
+                            {% if task.completed %}未完了に戻す{% else %}完了{% endif %}
+                        </a>
+                        <a href="{{ url_for('delete_task', task_id=task.id) }}"
+                           class="btn btn-small btn-danger"
+                           onclick="return confirm('本当に削除しますか？')">
+                            削除
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="no-tasks">タスクがありません。上のフォームから追加してください。</p>
+    {% endif %}
+</div>
+{% endblock %}

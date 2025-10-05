@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}このアプリについて - Flask タスク管理{% endblock %}
+
+{% block content %}
+<div class="content-section">
+    <h2>このアプリについて</h2>
+
+    <div class="about-content">
+        <h3>Flask学習用サンプルアプリケーション</h3>
+        <p>これはFlaskフレームワークの学習用に作成されたシンプルなタスク管理アプリケーションです。</p>
+
+        <h3>使用している技術</h3>
+        <ul>
+            <li><strong>Flask</strong>: Pythonの軽量なWebフレームワーク</li>
+            <li><strong>Jinja2</strong>: Flaskのテンプレートエンジン</li>
+            <li><strong>HTML/CSS</strong>: フロントエンドの構築</li>
+        </ul>
+
+        <h3>学習できる機能</h3>
+        <ul>
+            <li>ルーティング (@app.route デコレータ)</li>
+            <li>テンプレートの継承と変数の受け渡し</li>
+            <li>フォームデータの処理 (POST リクエスト)</li>
+            <li>フラッシュメッセージ (flash)</li>
+            <li>URL生成 (url_for)</li>
+            <li>静的ファイルの提供</li>
+        </ul>
+
+        <h3>注意事項</h3>
+        <p>このアプリケーションはデータベースを使用せず、メモリ内にデータを保存しています。
+        サーバーを再起動するとデータは失われます。本番環境では、SQLAlchemyなどを使用して
+        データベースに保存することをお勧めします。</p>
+    </div>
+</div>
+{% endblock %}
