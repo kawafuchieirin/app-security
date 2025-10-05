@@ -1,0 +1,19 @@
+# Terraform変数の設定例
+# このファイルをコピーして terraform.tfvars として使用してください
+# cp terraform.tfvars.example terraform.tfvars
+
+# AWSリージョン
+aws_region = "ap-northeast-1"
+
+# アプリケーション名
+app_name = "flask-todo-app"
+
+# 環境名
+environment = "development"
+
+# API Gatewayを使用するか（false: Lambda Function URLを使用）
+use_api_gateway = false
+
+# GitHubリポジトリ（GitHub Actions用OIDC設定に必要）
+# 形式: "owner/repo" 例: "username/flask-todo-app"
+github_repository = "your-github-username/your-repo-name"

@@ -1,0 +1,29 @@
+# AWS Lambda用のDockerfile
+FROM public.ecr.aws/lambda/python:3.13
+
+# 作業ディレクトリを設定
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+# Poetryのインストール
+RUN pip install --no-cache-dir poetry
+
+# 依存関係ファイルをコピー
+COPY pyproject.toml poetry.lock* ./
+
+# 依存関係をインストール
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi --only main
+
+# Mangum（ASGI/WSGIアダプター）をインストール
+RUN pip install --no-cache-dir mangum
+
+# アプリケーションファイルをコピー
+COPY app.py ./
+COPY templates ./templates
+COPY static ./static
+
+# Lambda handler用のファイルをコピー
+COPY lambda_handler.py ./
+
+# Lambda handlerを指定
+CMD ["lambda_handler.handler"]

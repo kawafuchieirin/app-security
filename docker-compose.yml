@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "1000:1000"
+    volumes:
+      # 開発時のコード変更をリアルタイムで反映
+      - .:/app
+      # Pythonのキャッシュファイルは除外
+      - /app/__pycache__
+    environment:
+      - FLASK_ENV=development
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
