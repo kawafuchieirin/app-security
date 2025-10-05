@@ -25,33 +25,37 @@ app-security/
 
 ### Initial Setup
 ```bash
-# Create virtual environment
-python3 -m venv venv
-
-# Activate virtual environment
-source venv/bin/activate  # On macOS/Linux
-# venv\Scripts\activate   # On Windows
-
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies with Poetry
+poetry install
 ```
 
 ### Running the Application
 ```bash
-# Run development server
-python app.py
+# Run development server with Poetry
+poetry run python app.py
 
 # Or using Flask CLI
-export FLASK_APP=app.py
-export FLASK_ENV=development
-flask run
+poetry run flask --app app run
 ```
 
-The application will be available at `http://localhost:5000`
+The application will be available at `http://localhost:1000` (configured in app.py)
 
-### Deactivate Virtual Environment
+### Other Useful Commands
 ```bash
-deactivate
+# Add a new dependency
+poetry add <package-name>
+
+# Add a development dependency
+poetry add --group dev <package-name>
+
+# Update dependencies
+poetry update
+
+# Show installed packages
+poetry show
+
+# Activate Poetry shell (alternative to using "poetry run")
+poetry shell
 ```
 
 ## Application Architecture
