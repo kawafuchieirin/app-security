@@ -58,33 +58,45 @@ docker-compose down
 
 ### 3. AWS Lambda デプロイ
 
-#### GitHub Actions (推奨)
+#### GitHub Actions（完全自動化 - 推奨）
 
-mainブランチにプッシュすると自動的にLambdaにデプロイされます。
+GitHub Actionsでインフラのセットアップからデプロイまで全て自動化できます。
 
 **初回セットアップ:**
 
 ```bash
-# 1. terraform.tfvarsを設定
-cd terraform
-cp terraform.tfvars.example terraform.tfvars
-vim terraform.tfvars  # github_repositoryを設定
+# 1. AWS認証情報をGitHub Secretsに追加
+#    Settings → Secrets and variables → Actions
+#    - AWS_ACCESS_KEY_ID: あなたのAccess Key
+#    - AWS_SECRET_ACCESS_KEY: あなたのSecret Key
 
-# 2. Terraformを実行
-terraform init
-terraform apply
+# 2. インフラセットアップワークフローを実行
+#    Actions → Setup AWS Infrastructure → Run workflow
+#    パラメータを入力して実行
 
-# 3. ロールARNを取得
-terraform output github_actions_role_arn
+# 3. 完了後、表示されたAWS_ROLE_ARNをGitHub Secretsに追加
+#    Settings → Secrets and variables → Actions
+#    Name: AWS_ROLE_ARN
+#    Value: (表示されたARN)
 
-# 4. GitHub Secretsに設定
-# Settings → Secrets and variables → Actions
-# Name: AWS_ROLE_ARN
-# Value: 上記のロールARN
-
-# 5. デプロイ
+# 4. mainブランチにプッシュすると自動デプロイ
 git push origin main
 ```
+
+**2回目以降:**
+
+```bash
+# mainブランチにプッシュするだけで自動デプロイ
+git push origin main
+
+# 自動的に以下が実行されます:
+# 1. Terraformで変更チェック（変更があれば適用）
+# 2. Dockerイメージビルド
+# 3. ECRプッシュ
+# 4. Lambda更新
+```
+
+詳細は [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md) を参照してください。
 
 #### ローカルからデプロイ
 
@@ -127,7 +139,8 @@ app-security/
 │   └── terraform.tfvars.example
 └── .github/
     └── workflows/
-        └── deploy.yml          # GitHub Actions CI/CD
+        ├── deploy.yml                   # アプリケーションデプロイ
+        └── setup-infrastructure.yml     # インフラセットアップ
 ```
 
 ## デプロイメントアーキテクチャ
@@ -278,5 +291,7 @@ aws lambda get-function --function-name flask-todo-app --region ap-northeast-1
 
 ## 詳細なドキュメント
 
+- [QUICKSTART.md](QUICKSTART.md) - **5ステップでデプロイ（最短手順）**
+- [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md) - GitHub Actions CI/CDセットアップガイド
 - [DEPLOYMENT.md](DEPLOYMENT.md) - 詳細なデプロイメント手順
 - [CLAUDE.md](CLAUDE.md) - Claude Code用のプロジェクトガイド

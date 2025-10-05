@@ -66,21 +66,21 @@ docker-compose down
 
 ### Deploying to AWS Lambda
 
-#### GitHub Actions (CI/CD - 推奨)
-mainブランチにプッシュすると自動的にLambdaにデプロイされます。
+#### GitHub Actions (完全自動化 - 推奨)
+GitHub Actionsでインフラのセットアップからデプロイまで自動化されます。
 
 ```bash
-# セットアップ（初回のみ）
-cd terraform
-cp terraform.tfvars.example terraform.tfvars
-# terraform.tfvarsを編集してgithub_repositoryを設定
-terraform init
-terraform apply
-# ロールARNを取得してGitHub Secretsに AWS_ROLE_ARN として設定
+# 初回セットアップ
+# 1. GitHub Secretsに AWS_ACCESS_KEY_ID と AWS_SECRET_ACCESS_KEY を追加
+# 2. Actions → Setup AWS Infrastructure → Run workflow
+# 3. 完了後、表示されたAWS_ROLE_ARNをGitHub Secretsに追加
 
-# デプロイ（GitHub Actions経由）
+# デプロイ（2回目以降）
 git push origin main
+# 自動的に Terraform チェック → Docker ビルド → ECR プッシュ → Lambda 更新
 ```
+
+詳細は [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md) を参照。
 
 #### ローカルデプロイ
 ```bash
